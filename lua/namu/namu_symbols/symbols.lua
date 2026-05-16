@@ -373,7 +373,7 @@ function M.show_treesitter(config, opts, silent)
       hl_group = "NamuSourceIndicator",
     }, function()
       M.show_treesitter(config, opts)
-    }) then
+    end) then
       return true
     end
     if not silent then
