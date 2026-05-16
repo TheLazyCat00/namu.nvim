@@ -169,6 +169,8 @@ function M.get_config(module_name)
     config = vim.tbl_deep_extend("force", config, M.module_defaults[module_name])
   end
 
+  local allow_kinds_base = config.AllowKinds and vim.deepcopy(config.AllowKinds) or nil
+
   -- Apply user global overrides
   if M.user_config.global then
     config = vim.tbl_deep_extend("force", config, M.user_config.global)
@@ -195,6 +197,43 @@ function M.get_config(module_name)
 
   if type(config.auto_start) == "boolean" then
     config.auto_start = { enabled = config.auto_start }
+  end
+
+  do
+    local allow_kinds_override = nil
+    local allow_kinds_from_global = M.user_config.global and M.user_config.global.AllowKinds or nil
+    local allow_kinds_from_options = M.user_config[module_name]
+        and M.user_config[module_name].options
+        and M.user_config[module_name].options.AllowKinds
+      or nil
+    local allow_kinds_from_module = M.user_config[module_name] and M.user_config[module_name].AllowKinds or nil
+
+    if type(allow_kinds_from_global) == "table" then
+      allow_kinds_override = allow_kinds_override or {}
+      for ft, kinds in pairs(allow_kinds_from_global) do
+        allow_kinds_override[ft] = vim.deepcopy(kinds)
+      end
+    end
+    if type(allow_kinds_from_options) == "table" then
+      allow_kinds_override = allow_kinds_override or {}
+      for ft, kinds in pairs(allow_kinds_from_options) do
+        allow_kinds_override[ft] = vim.deepcopy(kinds)
+      end
+    end
+    if type(allow_kinds_from_module) == "table" then
+      allow_kinds_override = allow_kinds_override or {}
+      for ft, kinds in pairs(allow_kinds_from_module) do
+        allow_kinds_override[ft] = vim.deepcopy(kinds)
+      end
+    end
+
+    if allow_kinds_override then
+      local merged = vim.deepcopy(allow_kinds_base or {})
+      for ft, kinds in pairs(allow_kinds_override) do
+        merged[ft] = vim.deepcopy(kinds)
+      end
+      config.AllowKinds = merged
+    end
   end
 
   return config

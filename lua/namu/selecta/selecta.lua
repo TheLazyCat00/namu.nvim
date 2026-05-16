@@ -498,7 +498,11 @@ function M.setup_prompt_buffer(state, opts)
 
   input_handler.setup_keymaps(state, opts, M.close_picker, M.process_query)
   ui.update_prompt_prefix(state, opts, state:get_query_string())
-  vim.cmd("startinsert")
+  local layout = opts.window and opts.window.layout or "float"
+  local is_sidebar = layout == "left" or layout == "right"
+  if not opts.normal_mode and not is_sidebar then
+    vim.cmd("startinsert")
+  end
 end
 
 ---Pick an item from the list with cursor management
