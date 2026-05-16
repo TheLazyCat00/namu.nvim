@@ -46,6 +46,7 @@ local common = require("namu.selecta.common")
 local input_handler = require("namu.selecta.input")
 local ui = require("namu.selecta.ui")
 local config = require("namu.selecta.selecta_config").values
+local sidebar_manager = require("namu.core.sidebar_manager")
 local uv = vim.uv or vim.loop
 local notify_opts = { title = "Namu", icon = config.icon }
 
@@ -524,6 +525,26 @@ function M.pick(items, opts)
     normal_mode = false,
   }
   opts = vim.tbl_deep_extend("force", base_opts, opts or {})
+
+  do
+    local layout = opts.window and opts.window.layout or "float"
+    local is_sidebar = layout == "left" or layout == "right"
+    if is_sidebar and not opts._namu_sidebar_managed then
+      sidebar_manager.capture_source_from_current()
+      if sidebar_manager.has_primary() and not sidebar_manager.is_restoring() and not opts.stay_open then
+        sidebar_manager.with_suspending(function()
+          sidebar_manager.close_primary()
+        end)
+        local original_on_close = opts.on_close
+        opts.on_close = function(...)
+          if original_on_close then
+            original_on_close(...)
+          end
+          sidebar_manager.request_restore_primary()
+        end
+      end
+    end
+  end
 
   -- Calculate max_prefix_width before creating formatter
   local max_prefix_width = ui.calculate_max_prefix_width(items, opts.display.mode)

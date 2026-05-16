@@ -243,7 +243,21 @@ function M.show(config, opts)
       text = symbol_cache.source == "lsp" and "󰿘 " or " ",
       hl_group = "NamuSourceIndicator",
     }
-    symbol_utils.show_picker(items, state, config, ui, selecta, " Symbols ", notify_opts, false, "buffer", prompt_info)
+    symbol_utils.show_picker(
+      items,
+      state,
+      config,
+      ui,
+      selecta,
+      " Symbols ",
+      notify_opts,
+      false,
+      "buffer",
+      prompt_info,
+      function()
+        M.show(config, opts)
+      end
+    )
     return
   end
 
@@ -311,7 +325,10 @@ function M.show(config, opts)
       notify_opts,
       false,
       "buffer",
-      prompt_info
+      prompt_info,
+      function()
+        M.show(config, opts)
+      end
     )
   end)
 end
@@ -377,7 +394,10 @@ function M.show_treesitter(config, opts, silent)
     notify_opts,
     false,
     "buffer",
-    prompt_info
+    prompt_info,
+    function()
+      M.show_treesitter(config, opts)
+    end
   )
   return true
 end

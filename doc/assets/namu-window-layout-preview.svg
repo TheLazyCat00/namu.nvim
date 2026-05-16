@@ -45,14 +45,11 @@
   <text x="1202" y="308" fill="#FFFFFF" font-size="16" font-family="Arial, sans-serif">  window.width</text>
   <rect x="1188" y="326" width="152" height="34" rx="8" fill="#121A31" stroke="#4E6DC4"/>
   <text x="1202" y="348" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  width_ratio</text>
-  <rect x="1188" y="366" width="152" height="34" rx="8" fill="#121A31"/>
-  <text x="1202" y="388" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  stay_open</text>
   <line x1="1176" y1="652" x2="1352" y2="652" stroke="#2A3557"/>
   <text x="1202" y="675" fill="#8DA0CB" font-size="14" font-family="Arial, sans-serif">4/18</text>
   <text x="756" y="238" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">require("namu").setup({</text>
   <text x="756" y="270" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">  namu_symbols = {</text>
   <text x="756" y="302" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">    options = {</text>
-  <text x="756" y="334" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">      stay_open = true,</text>
   <text x="756" y="366" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">      window = {</text>
   <text x="756" y="398" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">        layout = <tspan fill="#7EE787">"right"</tspan>,</text>
   <text x="756" y="430" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">        width = <tspan fill="#7EE787">0.25</tspan>,</text>

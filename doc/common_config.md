@@ -54,7 +54,7 @@ window = {
 }
 ```
 
-Set `layout = "left"` or `"right"` to make Namu behave like a sidebar attached to the editor edge.
+Set `layout = "left"` or `"right"` to make Namu behave like a sidebar attached to the editor edge (non-floating split that stays open).
 
 
 ---

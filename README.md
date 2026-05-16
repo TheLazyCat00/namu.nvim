@@ -309,7 +309,6 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
             title_prefix = "󱠦 ",
           },
           debug = false,
-          stay_open = false, -- Keep picker open; follows cursor; preview highlight only while searching
           focus_current_symbol = true,
           auto_select = false,
           initially_hidden = false,
@@ -440,7 +439,6 @@ For an `aerial.nvim`-style sidebar:
 require("namu").setup({
   namu_symbols = {
     options = {
-      stay_open = true,
       window = {
         layout = "right",
         width = 0.25, -- ratio when < 1, absolute columns when >= 1

@@ -196,9 +196,6 @@ M.defaults = {
     title_prefix = "󱠦 ",
   },
   debug = false,
-  -- Keep the picker open (like a sidebar) and let it follow the cursor in the code window.
-  -- In this mode, preview highlighting is only shown when searching (non-empty prompt query).
-  stay_open = false,
   focus_current_symbol = true,
   auto_select = false,
   initially_hidden = false,

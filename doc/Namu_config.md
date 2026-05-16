@@ -91,7 +91,7 @@ window = {
 }
 ```
 
-When `layout` is `"left"` or `"right"`, Namu uses the configured width and stretches vertically like a sidebar.
+When `layout` is `"left"` or `"right"`, Namu uses the configured width, opens as a non-floating split, and stays open like a sidebar.
 
 ## Right Position
 Only applies when `row_position` is right-aligned in floating layout.

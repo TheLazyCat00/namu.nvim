@@ -280,7 +280,9 @@ function impl.show(config, opts)
         return item.kind == opts.filter_kind
       end, items)
     end
-    symbol_utils.show_picker(items, state, config, ui, selecta, "Ctags", notify_opts, true, "buffer")
+    symbol_utils.show_picker(items, state, config, ui, selecta, "Ctags", notify_opts, true, "buffer", nil, function()
+      impl.show(config, opts)
+    end)
     return
   end
 
@@ -319,7 +321,9 @@ function impl.show(config, opts)
       end, selectaItems)
     end
 
-    symbol_utils.show_picker(selectaItems, state, config, ui, selecta, " Namu Ctags ", notify_opts, true, "buffer")
+    symbol_utils.show_picker(selectaItems, state, config, ui, selecta, " Namu Ctags ", notify_opts, true, "buffer", nil, function()
+      impl.show(config, opts)
+    end)
   end)
 end
 

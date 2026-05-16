@@ -51,7 +51,6 @@
 ---@field highlights table<string, string> Highlight groups
 ---@field window table Window configuration
 ---@field debug boolean Enable debug logging
----@field stay_open boolean Keep picker open and follow cursor
 ---@field focus_current_symbol boolean Focus the current symbol
 ---@field auto_select boolean Auto-select single matches
 ---@field row_position "center"|"top10"|"top10_right"|"center_right"|"bottom" Window position preset

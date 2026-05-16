@@ -437,7 +437,10 @@ function M.show()
           { title = "Namu", icon = config.values.icon },
           false,
           "open",
-          prompt_info
+          prompt_info,
+          function()
+            M.show()
+          end
         )
       end
     end

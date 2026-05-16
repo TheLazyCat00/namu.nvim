@@ -3,6 +3,7 @@ local logger = require("namu.utils.logger")
 local format_utils = require("namu.core.format_utils")
 local core = require("namu.core.utils")
 local selecta_common = require("namu.selecta.common")
+local sidebar_manager = require("namu.core.sidebar_manager")
 local api = vim.api
 local uv = vim.uv or vim.loop
 
@@ -13,6 +14,7 @@ function M.create_state(namespace)
     original_buf = nil,
     original_pos = nil,
     original_ft = nil,
+    namespace = namespace,
     preview_ns = api.nvim_create_namespace(namespace or "namu_preview"),
     current_request = nil,
   }
@@ -519,6 +521,7 @@ end
 ---@param notify_opts? table Notification options
 ---@param context? string Context identifier ("buffer" or "watchtower")
 ---@param initial_prompt_info? {text: string, hl_group: string} Optional info for the prompt
+---@param sidebar_restore? fun() Optional callback to restore this picker as the sidebar primary
 function M.show_picker(
   selectaItems,
   module_state,
@@ -529,13 +532,39 @@ function M.show_picker(
   notify_opts,
   is_ctags,
   context,
-  initial_prompt_info
+  initial_prompt_info,
+  sidebar_restore
 )
   if #selectaItems == 0 then
     vim.notify("Current `kindFilter` doesn't match any symbols.", nil, notify_opts)
     return
   end
   context = context or "buffer"
+
+  sidebar_manager.capture_source_from_current()
+  local source_context = sidebar_manager.get_source_context()
+
+  -- If invoked while focused inside a Namu picker window, re-anchor to the last "real" editor window/buffer.
+  if module_state and (sidebar_manager.is_namu_window(module_state.original_win) or sidebar_manager.is_namu_buffer(module_state.original_buf)) then
+    if source_context and source_context.buf then
+      module_state.original_win = source_context.win or module_state.original_win
+      module_state.original_buf = source_context.buf
+      module_state.original_pos = source_context.pos or module_state.original_pos
+      module_state.original_ft = source_context.ft or module_state.original_ft
+    end
+  end
+
+  local layout = opts.window and opts.window.layout or "float"
+  local is_sidebar = layout == "left" or layout == "right"
+  local is_primary_sidebar = false
+  if is_sidebar then
+    is_primary_sidebar = sidebar_manager.is_restoring() or not sidebar_manager.has_primary()
+    if not is_primary_sidebar then
+      sidebar_manager.with_suspending(function()
+        sidebar_manager.close_primary()
+      end)
+    end
+  end
   -- Find containing symbol for current cursor position
   local current_symbol
   if is_ctags then
@@ -545,12 +574,13 @@ function M.show_picker(
   end
 
   local picker_opts = {
+    _namu_sidebar_managed = true,
     title = opts.title or title or " Symbols ",
     fuzzy = false,
     preserve_order = true,
-    stay_open = opts.stay_open or false,
-    -- In stay-open mode, only call on_move (preview/highlight) when the user is searching.
-    on_move_only_when_query = opts.stay_open or false,
+    stay_open = is_sidebar and is_primary_sidebar,
+    -- In sidebar-primary mode, only call on_move (preview/highlight) when the user is searching.
+    on_move_only_when_query = is_sidebar and is_primary_sidebar,
     window = opts.window,
     display = opts.display,
     auto_select = opts.auto_select,
@@ -700,9 +730,37 @@ function M.show_picker(
   --   end
   -- end
   --
+  local picker_token = nil
+
+  if is_sidebar and not is_primary_sidebar then
+    local original_on_close = picker_opts.on_close
+    picker_opts.on_close = function()
+      if original_on_close then
+        original_on_close()
+      end
+      sidebar_manager.request_restore_primary()
+    end
+  elseif is_sidebar and is_primary_sidebar then
+    local original_on_close = picker_opts.on_close
+    picker_opts.on_close = function()
+      if original_on_close then
+        original_on_close()
+      end
+      if picker_token and sidebar_manager.is_primary_token(picker_token) and not sidebar_manager.is_suspending() then
+        sidebar_manager.clear_primary()
+      end
+    end
+  end
+
   local follow_group_id = nil
-  if opts.stay_open then
-    follow_group_id = api.nvim_create_augroup("NamuStayOpen_" .. tostring(uv.hrtime()), { clear = true })
+  local follow_enabled = is_sidebar
+    and is_primary_sidebar
+    and module_state
+    and module_state.namespace == "namu_symbols_preview"
+    and module_state.original_buf ~= nil
+
+  if follow_enabled then
+    follow_group_id = api.nvim_create_augroup("NamuSidebarFollow_" .. tostring(uv.hrtime()), { clear = true })
     local original_on_close = picker_opts.on_close
     picker_opts.on_close = function()
       if follow_group_id then
@@ -715,6 +773,26 @@ function M.show_picker(
   end
 
   local picker_state = selecta.pick(selectaItems, picker_opts)
+  picker_token = picker_state and picker_state.picker_id or nil
+
+  if is_sidebar and is_primary_sidebar and picker_state then
+    sidebar_manager.set_primary({
+      token = picker_token,
+      restore = sidebar_restore,
+      close = selecta.close_picker,
+      picker_state = picker_state,
+    })
+  end
+
+  if picker_state and follow_group_id then
+    local original_cleanup = picker_state.cleanup
+    picker_state.cleanup = function(self, ...)
+      pcall(api.nvim_del_augroup_by_id, follow_group_id)
+      if original_cleanup then
+        return original_cleanup(self, ...)
+      end
+    end
+  end
 
   -- Add cleanup autocmd after picker is created
   if picker_state and picker_state.win then
@@ -729,8 +807,8 @@ function M.show_picker(
     })
   end
 
-  -- Stay-open mode: keep the list open and follow cursor position in the original buffer.
-  if opts.stay_open and follow_group_id and picker_state and module_state.original_buf then
+  -- Sidebar-primary: keep the list open and follow cursor position in the original buffer.
+  if follow_enabled and follow_group_id and picker_state and module_state.original_buf then
     local function sync_to_cursor()
       if not (picker_state and picker_state.active) then
         pcall(api.nvim_del_augroup_by_id, follow_group_id)

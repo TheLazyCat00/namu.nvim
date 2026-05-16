@@ -2,9 +2,6 @@ local M = {}
 
 -- Global defaults that apply to all modules
 M.global_defaults = {
-  -- When true, Namu pickers do not auto-close on selection or when leaving the picker
-  -- (intended to make Namu usable like a persistent symbols sidebar).
-  stay_open = false,
   movement = {
     next = { "<C-n>", "<DOWN>" },
     previous = { "<C-p>", "<UP>" },

@@ -293,6 +293,21 @@ function M.create_prompt_window(state, opts)
     vim.api.nvim_set_option_value("complete", "", { buf = state.prompt_buf })
   end
 
+  local layout = get_window_layout(opts)
+  if is_sidebar_layout(layout) then
+    -- In sidebar layout we create a real split, not a floating prompt window.
+    -- This keeps the entire picker non-floating when `window.layout` is left/right.
+    local prompt_config = {
+      split = "above",
+      win = state.win,
+      height = 1,
+    }
+
+    state.prompt_win = vim.api.nvim_open_win(state.prompt_buf, false, prompt_config)
+    vim.wo[state.prompt_win].winfixheight = true
+    return state.prompt_win, state.prompt_buf
+  end
+
   -- Get container dimensions to determine if we need a win parameter
   local container = M.get_original_dimensions(state.picker_id) or M.get_container_dimensions(opts, state.picker_id)
   -- Create window with prompt buffer
@@ -448,6 +463,19 @@ function M.resize_window(state, opts)
   if not (state.active and vim.api.nvim_win_is_valid(state.win)) then
     return
   end
+  local layout = get_window_layout(opts)
+  if is_sidebar_layout(layout) then
+    local container = M.get_original_dimensions(state.picker_id) or M.get_container_dimensions(opts, state.picker_id)
+    local new_width, _new_height =
+      M.calculate_window_size(state.filtered_items, opts, opts.formatter, state.col, state.picker_id)
+
+    -- Clamp to editor/container width to avoid errors in narrow layouts.
+    local max_width = math.max(1, container.width - 1)
+    new_width = math.max(1, math.min(new_width, max_width))
+    pcall(vim.api.nvim_win_set_width, state.win, new_width)
+    return
+  end
+
   local container = M.get_original_dimensions(state.picker_id) or M.get_container_dimensions(opts, state.picker_id)
   local new_width, new_height =
     M.calculate_window_size(state.filtered_items, opts, opts.formatter, state.col, state.picker_id)
@@ -1054,6 +1082,72 @@ function M.create_windows(state, opts)
   end
   -- Get container dimensions to determine if we need a win parameter
   local container = M.get_original_dimensions(state.picker_id) or M.get_container_dimensions(opts, state.picker_id)
+  local layout = get_window_layout(opts)
+
+  if is_sidebar_layout(layout) then
+    local base_win = state.original_window
+    if opts.window and opts.window.relative == "win" then
+      base_win = container.win or base_win
+    end
+
+    local win_config = {
+      split = layout,
+      win = base_win,
+      width = state.width,
+    }
+
+    state.win = vim.api.nvim_open_win(state.buf, true, win_config)
+
+    if opts.hooks and opts.hooks.on_window_create then
+      opts.hooks.on_window_create(state.win, state.buf, opts)
+    end
+
+    -- Create prompt window as a split above the list.
+    M.create_prompt_window(state, opts)
+    update_prompt_info(state, opts, true)
+
+    vim.wo[state.win].cursorline = true
+    vim.wo[state.win].cursorlineopt = "both"
+    vim.wo[state.win].number = false
+    vim.wo[state.win].relativenumber = false
+    vim.wo[state.win].signcolumn = "no"
+    vim.wo[state.win].foldcolumn = "0"
+    vim.wo[state.win].wrap = false
+
+    if state.prompt_win and vim.api.nvim_win_is_valid(state.prompt_win) then
+      vim.wo[state.prompt_win].number = false
+      vim.wo[state.prompt_win].relativenumber = false
+      vim.wo[state.prompt_win].signcolumn = "no"
+      vim.wo[state.prompt_win].foldcolumn = "0"
+      vim.wo[state.prompt_win].wrap = false
+      vim.wo[state.prompt_win].cursorline = false
+    end
+
+    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = state.buf })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = state.buf })
+
+    if opts.initially_hidden then
+      vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, {})
+    end
+
+    if opts.initial_index and opts.initial_index <= #state.items then
+      local target_pos = math.min(opts.initial_index, #state.filtered_items)
+      if target_pos > 0 then
+        vim.schedule(function()
+          if vim.api.nvim_win_is_valid(state.win) then
+            pcall(vim.api.nvim_win_set_cursor, state.win, { target_pos, 0 })
+            vim.cmd("redraw")
+            vim.wo[state.win].cursorline = true
+            if opts.on_move then
+              opts.on_move(state.filtered_items[target_pos])
+            end
+          end
+        end)
+      end
+    end
+
+    return
+  end
 
   -- Create main window config
   local win_config = {

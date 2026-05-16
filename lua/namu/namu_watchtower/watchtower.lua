@@ -370,7 +370,10 @@ function M.show(config)
           { title = "Namu" },
           false,
           "open",
-          prompt_info
+          prompt_info,
+          function()
+            M.show(config)
+          end
         )
       end
     end

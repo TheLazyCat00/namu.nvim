@@ -41,7 +41,7 @@ local allowed_keys = {
     "auto_select", "row_position", "AllowKinds", "BlockList", "multiselect",
     "title", "filter", "kindText", "kindIcons", "preview", "icon", "highlight",
     "highlights", "kinds", "focus_current_symbol", "initially_hidden", "actions",
-    "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter", "stay_open",
+    "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter",
     "on_move", "hooks", "current_highlight", "preserve_hierarchy"
   }
 ,

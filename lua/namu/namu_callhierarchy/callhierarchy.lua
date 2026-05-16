@@ -855,8 +855,8 @@ function M.show_call_picker(selectaItems, notify_opts)
     end
   end
 
-  local picker_win = selecta.pick(unique_items, picker_opts)
-
+  local picker_state = selecta.pick(unique_items, picker_opts)
+  local picker_win = picker_state and picker_state.win or nil
   if picker_win then
     local augroup = api.nvim_create_augroup("NamuCallHierarchyCleanup", { clear = true })
     api.nvim_create_autocmd("WinClosed", {
