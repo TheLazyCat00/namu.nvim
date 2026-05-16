@@ -78,7 +78,7 @@ local function handle_toggle(state, opts, direction)
       common.update_current_highlight(state, opts, next_pos - 1)
 
       -- Trigger move callback if exists
-      if opts.on_move then
+      if common.should_call_on_move(state, opts) then
         local new_item = state.filtered_items[next_pos]
         if new_item then
           opts.on_move(new_item)
@@ -166,7 +166,7 @@ local function handle_untoggle(state, opts)
     common.update_current_highlight(state, opts, prev_selected_pos - 1)
 
     -- Trigger move callback if exists
-    if opts.on_move then
+    if common.should_call_on_move(state, opts) then
       opts.on_move(prev_item)
     end
 
@@ -292,6 +292,9 @@ function M.setup_keymaps(state, opts, close_picker_fn, process_query_fn)
     group = augroup,
     pattern = "*",
     callback = function(args)
+      if opts.stay_open then
+        return
+      end
       if args.buf ~= state.prompt_buf and args.buf ~= state.buf then
         return
       end
@@ -418,8 +421,13 @@ function M.setup_keymaps(state, opts, close_picker_fn, process_query_fn)
         common.close_picker_with_cleanup(state, opts, close_picker_fn, true) -- true = is a cancellation (no items to select)
       else
         M.handle_selection(state, opts)
-        -- Use the new callback-aware close function for selection
-        common.close_picker_with_cleanup(state, opts, close_picker_fn, false) -- false = not a cancellation (successful selection)
+        if not opts.stay_open then
+          -- Use the new callback-aware close function for selection
+          common.close_picker_with_cleanup(state, opts, close_picker_fn, false) -- false = not a cancellation (successful selection)
+        else
+          -- Keep the picker open but release insert-mode (focus is typically restored by opts.on_select).
+          vim.cmd("stopinsert!")
+        end
       end
     end)
   end
@@ -535,7 +543,7 @@ function M.setup_sidebar_keymaps(state, opts)
     callback = function()
       local cursor_pos = vim.api.nvim_win_get_cursor(state.win)[1]
       local item = state.filtered_items[cursor_pos]
-      if item and opts.on_move then
+      if item and common.should_call_on_move(state, opts) then
         opts.on_move(item)
       end
       common.update_current_highlight(state, opts, cursor_pos - 1)

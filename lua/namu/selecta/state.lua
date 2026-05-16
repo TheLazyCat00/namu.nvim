@@ -211,7 +211,7 @@ function StateManager:handle_movement(direction, opts)
   pcall(vim.api.nvim_win_set_cursor, self.win, { new_pos, 0 })
   common.update_current_highlight(self, opts, new_pos - 1) -- 0-indexed for extmarks
 
-  if opts.on_move then
+  if common.should_call_on_move(self, opts) then
     opts.on_move(self.filtered_items[new_pos])
   end
 

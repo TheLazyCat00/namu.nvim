@@ -131,6 +131,8 @@
 ---@field items_fully_loaded? boolean Whether all items have been loaded (async)
 ---@field on_close? fun() Function to call when picker closes
 ---@field logical_item_counter? fun(items: SelectaItem[]): number Custom function to count logical items (for multiline/grouped items)
+---@field stay_open? boolean Keep the picker open (no auto-close)
+---@field on_move_only_when_query? boolean Only invoke on_move when query non-empty
 
 ---@class CurrentHighlightConfig
 ---@field enabled boolean Whether to use custom highlight

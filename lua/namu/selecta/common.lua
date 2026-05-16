@@ -170,6 +170,25 @@ function M.update_selection_highlights(state, opts)
   end
 end
 
+---Whether we should invoke opts.on_move for the current state.
+---Useful for "stay open" / sidebar-like workflows where moving through the list
+---should not preview-highlight the code unless the user is actively searching.
+---@param state SelectaState
+---@param opts SelectaOptions
+---@return boolean
+function M.should_call_on_move(state, opts)
+  if not (opts and opts.on_move) then
+    return false
+  end
+  if opts.on_move_only_when_query then
+    if not (state and state.get_query_string) then
+      return false
+    end
+    return state:get_query_string() ~= ""
+  end
+  return true
+end
+
 ---Close the picker with proper callback handling
 ---@param state SelectaState
 ---@param opts SelectaOptions

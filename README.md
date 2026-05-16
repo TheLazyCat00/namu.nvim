@@ -307,6 +307,7 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
             title_prefix = "󱠦 ",
           },
           debug = false,
+          stay_open = false, -- Keep picker open; follows cursor; preview highlight only while searching
           focus_current_symbol = true,
           auto_select = false,
           initially_hidden = false,

@@ -580,7 +580,7 @@ function M.pick(items, opts)
       if target_pos <= line_count then
         pcall(vim.api.nvim_win_set_cursor, state.win, { target_pos, 0 })
         common.update_current_highlight(state, opts, target_pos - 1)
-        if opts.on_move then
+        if common.should_call_on_move(state, opts) then
           opts.on_move(state.filtered_items[target_pos])
         end
       end
@@ -591,6 +591,8 @@ function M.pick(items, opts)
   if state.prompt_win and vim.api.nvim_win_is_valid(state.prompt_win) then
     vim.api.nvim_set_current_win(state.prompt_win)
   end
+
+  return state
 end
 
 M._test = {

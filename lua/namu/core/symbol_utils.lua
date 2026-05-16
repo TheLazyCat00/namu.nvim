@@ -2,6 +2,7 @@ local M = {}
 local logger = require("namu.utils.logger")
 local format_utils = require("namu.core.format_utils")
 local core = require("namu.core.utils")
+local selecta_common = require("namu.selecta.common")
 local api = vim.api
 
 -- Factory function to create a state object for a particular module
@@ -546,6 +547,9 @@ function M.show_picker(
     title = opts.title or title or " Symbols ",
     fuzzy = false,
     preserve_order = true,
+    stay_open = opts.stay_open or false,
+    -- In stay-open mode, only call on_move (preview/highlight) when the user is searching.
+    on_move_only_when_query = opts.stay_open or false,
     window = opts.window,
     display = opts.display,
     auto_select = opts.auto_select,
@@ -695,14 +699,28 @@ function M.show_picker(
   --   end
   -- end
   --
-  local picker_win = selecta.pick(selectaItems, picker_opts)
+  local follow_group_id = nil
+  if opts.stay_open then
+    follow_group_id = api.nvim_create_augroup("NamuStayOpen_" .. tostring(vim.uv.hrtime()), { clear = true })
+    local original_on_close = picker_opts.on_close
+    picker_opts.on_close = function()
+      if follow_group_id then
+        pcall(api.nvim_del_augroup_by_id, follow_group_id)
+      end
+      if original_on_close then
+        original_on_close()
+      end
+    end
+  end
+
+  local picker_state = selecta.pick(selectaItems, picker_opts)
 
   -- Add cleanup autocmd after picker is created
-  if picker_win then
+  if picker_state and picker_state.win then
     local augroup = api.nvim_create_augroup("NamuCleanup", { clear = true })
     api.nvim_create_autocmd("WinClosed", {
       group = augroup,
-      pattern = tostring(picker_win),
+      pattern = tostring(picker_state.win),
       callback = function()
         api.nvim_del_augroup_by_name("NamuCleanup")
       end,
@@ -710,7 +728,75 @@ function M.show_picker(
     })
   end
 
-  return picker_win
+  -- Stay-open mode: keep the list open and follow cursor position in the original buffer.
+  if opts.stay_open and follow_group_id and picker_state and module_state.original_buf then
+    local function sync_to_cursor()
+      if not (picker_state and picker_state.active) then
+        pcall(api.nvim_del_augroup_by_id, follow_group_id)
+        return
+      end
+      if not (picker_state.win and api.nvim_win_is_valid(picker_state.win)) then
+        return
+      end
+      -- Do not fight the user while they are searching.
+      if picker_state:get_query_string() ~= "" then
+        return
+      end
+
+      -- When not searching, ensure code preview highlight is cleared.
+      ui.clear_preview_highlight(module_state.original_win, module_state.preview_ns, module_state)
+
+      local symbol
+      if is_ctags then
+        symbol = M.find_nearest_symbol(selectaItems)
+      else
+        symbol = M.find_containing_symbol(selectaItems, module_state)
+      end
+      if not symbol then
+        return
+      end
+
+      local idx = ui.find_symbol_index(picker_state.filtered_items or selectaItems, symbol, is_ctags, context, module_state)
+      if not idx or idx < 1 then
+        return
+      end
+
+      local ok, current = pcall(api.nvim_win_get_cursor, picker_state.win)
+      local current_line = ok and current and current[1] or nil
+      if current_line == idx then
+        return
+      end
+
+      pcall(api.nvim_win_set_cursor, picker_state.win, { idx, 0 })
+      selecta_common.update_current_highlight(picker_state, picker_opts, idx - 1)
+    end
+
+    api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+      group = follow_group_id,
+      buffer = module_state.original_buf,
+      callback = function()
+        vim.schedule(sync_to_cursor)
+      end,
+    })
+
+    -- If the user clears the query, drop any lingering preview highlight immediately.
+    if picker_state.prompt_buf and api.nvim_buf_is_valid(picker_state.prompt_buf) then
+      api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+        group = follow_group_id,
+        buffer = picker_state.prompt_buf,
+        callback = function()
+          if picker_state.active and picker_state:get_query_string() == "" then
+            ui.clear_preview_highlight(module_state.original_win, module_state.preview_ns, module_state)
+          end
+        end,
+      })
+    end
+
+    -- Initial sync once the picker is ready.
+    vim.schedule(sync_to_cursor)
+  end
+
+  return picker_state and picker_state.win or nil
 end
 
 -- Create handlers for different actions
