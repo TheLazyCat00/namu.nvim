@@ -77,22 +77,20 @@ https://github.com/user-attachments/assets/a97ff3b1-8b25-4da1-b276-f623e37d0368
 Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
-    "bassamsdata/namu.nvim",
+    "TheLazyCat00/namu.nvim",
     opts = {
-        global = { },
-        namu_symbols = { -- Specific Module options
-            options = {},
+        namu_symbols = {
+            display = { mode = "icon", format = "tree_guides" },
+            window = {
+                layout = "left", -- "float" | "left" | "right"
+                width = 0.2, -- ratio when < 1, absolute columns when >= 1
+            },
         },
     },
-    -- === Suggested Keymaps: ===
-    vim.keymap.set("n", "<leader>ss", ":Namu symbols<cr>", {
-        desc = "Jump to LSP symbol",
-        silent = true,
-    }),
-    vim.keymap.set("n", "<leader>sw", ":Namu workspace<cr>", {
-        desc = "LSP Symbols - Workspace",
-        silent = true,
-    })
+    keys = {
+        { "<leader>ss", "<cmd>Namu symbols<cr>", desc = "Namu: Symbols" },
+        { "<leader>sw", "<cmd>Namu workspace<cr>", desc = "Namu: Workspace" },
+    },
 }
 ```
 
@@ -442,15 +440,13 @@ For an `aerial.nvim`-style sidebar:
 ```lua
 require("namu").setup({
   namu_symbols = {
-    options = {
-      auto_start = {
-        enabled = true,
-        mode = "lsp", -- or "treesitter"
-      },
-      window = {
-        layout = "right",
-        width = 0.25, -- ratio when < 1, absolute columns when >= 1
-      },
+    auto_start = {
+      enabled = true,
+      mode = "lsp", -- or "treesitter"
+    },
+    window = {
+      layout = "right",
+      width = 0.25, -- ratio when < 1, absolute columns when >= 1
     },
   },
 })
