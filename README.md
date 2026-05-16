@@ -312,6 +312,10 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
           focus_current_symbol = true,
           auto_select = false,
           initially_hidden = false,
+          auto_start = {
+            enabled = false,
+            mode = "lsp", -- "lsp" | "treesitter"
+          },
           multiselect = {
             enabled = true,
             indicator = "✓", -- or "✓"●
@@ -439,6 +443,10 @@ For an `aerial.nvim`-style sidebar:
 require("namu").setup({
   namu_symbols = {
     options = {
+      auto_start = {
+        enabled = true,
+        mode = "lsp", -- or "treesitter"
+      },
       window = {
         layout = "right",
         width = 0.25, -- ratio when < 1, absolute columns when >= 1
@@ -447,6 +455,8 @@ require("namu").setup({
   },
 })
 ```
+
+When `window.layout = "left"` or `"right"`, the sidebar stays attached to the source window. If that window switches to another buffer, Namu refreshes to match it; if there are no symbols/providers for the new buffer, the sidebar remains open and simply renders empty.
 
 </details>
 

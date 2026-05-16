@@ -207,8 +207,22 @@ T["SymbolUtils.picker"]["keeps persistent sidebar empty without notifying"] = fu
   symbol_utils.show_picker(
     {},
     { namespace = "namu_symbols_preview", original_win = 7, original_buf = 3, original_pos = { 1, 0 } },
-    { window = { layout = "right" }, movement = {}, display = {}, current_highlight = {}, custom_keymaps = {}, multiselect = { enabled = false }, preview = { highlight_on_move = false, highlight_mode = "always" } },
-    { clear_preview_highlight = function() end, find_symbol_index = function() return nil end, apply_highlights = function() end },
+    {
+      window = { layout = "right" },
+      movement = {},
+      display = {},
+      current_highlight = {},
+      custom_keymaps = {},
+      multiselect = { enabled = false },
+      preview = { highlight_on_move = false, highlight_mode = "always" },
+    },
+    {
+      clear_preview_highlight = function() end,
+      find_symbol_index = function()
+        return nil
+      end,
+      apply_highlights = function() end,
+    },
     fake_selecta,
     " Symbols ",
     { title = "Namu" },

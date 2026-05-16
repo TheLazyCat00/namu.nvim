@@ -93,6 +93,18 @@ window = {
 
 When `layout` is `"left"` or `"right"`, Namu uses the configured width, opens as a non-floating split, and stays open like a sidebar.
 
+Persistent sidebars attach to the source window instead of a single buffer. If that window shows another file, Namu refreshes to match it; if the new buffer has no symbols, the sidebar stays open and becomes empty.
+
+## Auto Start
+Open the persistent symbols sidebar automatically on startup.
+
+```lua
+auto_start = {
+  enabled = false,
+  mode = "lsp", -- "lsp" | "treesitter"
+}
+```
+
 ## Right Position
 Only applies when `row_position` is right-aligned in floating layout.
 

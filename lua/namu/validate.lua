@@ -42,13 +42,11 @@ local allowed_keys = {
   root = {
     "window", "display", "offset", "debug", "preserve_order", "keymaps",
     "auto_select", "row_position", "AllowKinds", "BlockList", "multiselect",
-     "title", "filter", "kindText", "kindIcons", "preview", "icon", "highlight",
-     "highlights", "kinds", "focus_current_symbol", "initially_hidden", "actions",
-     "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter",
-     "on_move", "hooks", "current_highlight", "preserve_hierarchy"
-    , "auto_start"
-   }
-,
+    "title", "filter", "kindText", "kindIcons", "preview", "icon", "highlight",
+    "highlights", "kinds", "focus_current_symbol", "initially_hidden", "actions",
+    "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter",
+    "on_move", "hooks", "current_highlight", "preserve_hierarchy", "auto_start"
+  },
   -- stylua: ignore end
 }
 

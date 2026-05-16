@@ -56,6 +56,15 @@ window = {
 
 Set `layout = "left"` or `"right"` to make Namu behave like a sidebar attached to the editor edge (non-floating split that stays open).
 
+For persistent sidebars, the picker follows the source window instead of a fixed buffer. When that window changes buffers, Namu refreshes automatically; if nothing can be shown for the new buffer, the sidebar stays open and renders empty.
+
+```lua
+auto_start = {
+  enabled = false,
+  mode = "lsp", -- "lsp" | "treesitter"
+}
+```
+
 
 ---
 
