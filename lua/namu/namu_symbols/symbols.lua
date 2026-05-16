@@ -303,14 +303,14 @@ function M.show(config, opts)
         end
       end
       -- Show a single consolidated error message if both methods failed
-    if ts_attempted then
+      if ts_attempted then
         if
           not show_empty_sidebar(config, opts, notify_opts, " Symbols ", {
             text = try_treesitter_first and " " or "󰿘 ",
             hl_group = "NamuSourceIndicator",
           }, function()
             M.show(config, opts)
-          })
+          end)
         then
           local ft = vim.bo[state.original_buf].filetype or ""
           local message =

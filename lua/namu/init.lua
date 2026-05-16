@@ -28,7 +28,11 @@ local function setup_auto_start()
   local config_manager = require("namu.core.config_manager")
   local sidebar_manager = require("namu.core.sidebar_manager")
   local symbol_config = config_manager.get_config("namu_symbols")
-  local auto_start = symbol_config.auto_start or {}
+  local auto_start = symbol_config.auto_start
+  if type(auto_start) == "boolean" then
+    auto_start = { enabled = auto_start }
+  end
+  auto_start = auto_start or {}
 
   if auto_start_augroup then
     pcall(vim.api.nvim_del_augroup_by_id, auto_start_augroup)
@@ -44,7 +48,8 @@ local function setup_auto_start()
       return
     end
 
-    if auto_start.mode == "treesitter" then
+    local mode = auto_start.mode or "lsp"
+    if mode == "treesitter" then
       require("namu.namu_symbols").show_treesitter()
     else
       require("namu.namu_symbols").show()

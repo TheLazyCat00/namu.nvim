@@ -185,9 +185,16 @@ function M.get_config(module_name)
     -- Remove non-config fields
     module_config.enable = nil
     module_config.options = nil
+    if type(module_config.auto_start) == "boolean" then
+      module_config.auto_start = { enabled = module_config.auto_start }
+    end
     if next(module_config) then -- Only apply if there are actual config values
       config = vim.tbl_deep_extend("force", config, module_config)
     end
+  end
+
+  if type(config.auto_start) == "boolean" then
+    config.auto_start = { enabled = config.auto_start }
   end
 
   return config

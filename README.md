@@ -452,6 +452,8 @@ require("namu").setup({
 })
 ```
 
+You can also use `auto_start = true` to enable with defaults, or `auto_start = false` to explicitly disable it.
+
 When `window.layout = "left"` or `"right"`, the sidebar stays attached to the source window. If that window switches to another buffer, Namu refreshes to match it; if there are no symbols/providers for the new buffer, the sidebar remains open and simply renders empty.
 
 </details>

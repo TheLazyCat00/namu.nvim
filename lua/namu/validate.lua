@@ -157,17 +157,22 @@ function M.validate_picker_options(opts)
       "preview.highlight_mode must be either 'always' or 'select'"
     )
   end
-  if opts.auto_start then
-    check(type(opts.auto_start) == "table", "auto_start must be a table")
-    check_unknown_keys(opts.auto_start, allowed_keys.auto_start, "auto_start", issues)
+  if opts.auto_start ~= nil then
     check(
-      opts.auto_start.enabled == nil or type(opts.auto_start.enabled) == "boolean",
-      "auto_start.enabled must be a boolean"
+      type(opts.auto_start) == "table" or type(opts.auto_start) == "boolean",
+      "auto_start must be a boolean or a table"
     )
-    check(
-      opts.auto_start.mode == nil or vim.tbl_contains({ "lsp", "treesitter" }, opts.auto_start.mode),
-      "auto_start.mode must be either 'lsp' or 'treesitter'"
-    )
+    if type(opts.auto_start) == "table" then
+      check_unknown_keys(opts.auto_start, allowed_keys.auto_start, "auto_start", issues)
+      check(
+        opts.auto_start.enabled == nil or type(opts.auto_start.enabled) == "boolean",
+        "auto_start.enabled must be a boolean"
+      )
+      check(
+        opts.auto_start.mode == nil or vim.tbl_contains({ "lsp", "treesitter" }, opts.auto_start.mode),
+        "auto_start.mode must be either 'lsp' or 'treesitter'"
+      )
+    end
   end
   -- Validate kinds configuration
   if opts.kinds then
