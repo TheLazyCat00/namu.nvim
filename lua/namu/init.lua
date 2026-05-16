@@ -22,6 +22,50 @@ M.config = {
   ui_select = { enable = false, options = {} },
 }
 
+local auto_start_augroup = nil
+
+local function setup_auto_start()
+  local config_manager = require("namu.core.config_manager")
+  local sidebar_manager = require("namu.core.sidebar_manager")
+  local symbol_config = config_manager.get_config("namu_symbols")
+  local auto_start = symbol_config.auto_start or {}
+
+  if auto_start_augroup then
+    pcall(vim.api.nvim_del_augroup_by_id, auto_start_augroup)
+    auto_start_augroup = nil
+  end
+
+  if not auto_start.enabled or not is_module_enabled("namu_symbols") then
+    return
+  end
+
+  local function launch()
+    if sidebar_manager.has_primary() or sidebar_manager.is_restoring() then
+      return
+    end
+
+    if auto_start.mode == "treesitter" then
+      require("namu.namu_symbols").show_treesitter()
+    else
+      require("namu.namu_symbols").show()
+    end
+  end
+
+  if vim.v.vim_did_enter == 1 then
+    vim.schedule(launch)
+    return
+  end
+
+  auto_start_augroup = vim.api.nvim_create_augroup("NamuAutoStart", { clear = true })
+  vim.api.nvim_create_autocmd("VimEnter", {
+    group = auto_start_augroup,
+    once = true,
+    callback = function()
+      vim.schedule(launch)
+    end,
+  })
+end
+
 M.setup = function(opts)
   opts = opts or {}
   -- Merge the top-level config
@@ -76,6 +120,8 @@ M.setup = function(opts)
     local ui_select_config = config_manager.get_config("ui_select")
     require("namu.ui_select").setup(ui_select_config)
   end
+
+  setup_auto_start()
 end
 
 return M

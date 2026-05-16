@@ -67,6 +67,14 @@ function M.get_source_context()
   return nil
 end
 
+local function call_in_source_context(fn)
+  local source = M.get_source_context()
+  if source and is_valid_win(source.win) then
+    return vim.api.nvim_win_call(source.win, fn)
+  end
+  return fn()
+end
+
 function M.has_primary()
   return state.primary ~= nil
 end
@@ -127,7 +135,7 @@ function M.request_restore_primary()
 
   state.restoring = true
   vim.schedule(function()
-    local ok = pcall(primary.restore)
+    local ok = pcall(call_in_source_context, primary.restore)
     if not ok then
       state.restoring = false
     end
@@ -135,6 +143,35 @@ function M.request_restore_primary()
 
   -- Safety net: if the restore callback doesn't end up creating a new primary picker (e.g. async failure),
   -- don't keep the manager stuck in restoring mode forever.
+  vim.defer_fn(function()
+    if state.restoring then
+      state.restoring = false
+    end
+  end, 10000)
+end
+
+function M.refresh_primary(restore)
+  local primary = state.primary
+  local restore_fn = restore or (primary and primary.restore)
+  if type(restore_fn) ~= "function" or state.restoring then
+    return
+  end
+
+  state.restoring = true
+  vim.schedule(function()
+    M.with_suspending(function()
+      if primary and primary.picker_state and primary.close and primary.picker_state.active then
+        pcall(primary.close, primary.picker_state)
+      end
+    end)
+    state.primary = nil
+
+    local ok = pcall(call_in_source_context, restore_fn)
+    if not ok then
+      state.restoring = false
+    end
+  end)
+
   vim.defer_fn(function()
     if state.restoring then
       state.restoring = false

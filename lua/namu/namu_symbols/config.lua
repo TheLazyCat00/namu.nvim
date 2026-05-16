@@ -199,6 +199,10 @@ M.defaults = {
   focus_current_symbol = true,
   auto_select = false,
   initially_hidden = false,
+  auto_start = {
+    enabled = false,
+    mode = "lsp", -- "lsp" | "treesitter"
+  },
   multiselect = {
     enabled = true,
     selected_icon = "● ",

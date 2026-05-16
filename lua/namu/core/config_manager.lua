@@ -63,6 +63,10 @@ M.module_defaults = {
     lua_test_truncate_length = 50,
     lua_test_preserve_hierarchy = true,
     source_priority = "lsp", -- Options: "lsp", "treesitter"
+    auto_start = {
+      enabled = false,
+      mode = "lsp", -- Options: "lsp", "treesitter"
+    },
   },
   diagnostics = {
     display = { mode = "icon", format = "tree_guides" },

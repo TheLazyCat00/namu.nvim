@@ -535,10 +535,6 @@ function M.show_picker(
   initial_prompt_info,
   sidebar_restore
 )
-  if #selectaItems == 0 then
-    vim.notify("Current `kindFilter` doesn't match any symbols.", nil, notify_opts)
-    return
-  end
   context = context or "buffer"
 
   sidebar_manager.capture_source_from_current()
@@ -564,6 +560,10 @@ function M.show_picker(
         sidebar_manager.close_primary()
       end)
     end
+  end
+  if #selectaItems == 0 and not (is_sidebar and is_primary_sidebar) then
+    vim.notify("Current `kindFilter` doesn't match any symbols.", nil, notify_opts)
+    return
   end
   -- Find containing symbol for current cursor position
   local current_symbol
@@ -757,7 +757,8 @@ function M.show_picker(
     and is_primary_sidebar
     and module_state
     and module_state.namespace == "namu_symbols_preview"
-    and module_state.original_buf ~= nil
+    and source_context
+    and source_context.win ~= nil
 
   if follow_enabled then
     follow_group_id = api.nvim_create_augroup("NamuSidebarFollow_" .. tostring(uv.hrtime()), { clear = true })
@@ -809,14 +810,27 @@ function M.show_picker(
     })
   end
 
-  -- Sidebar-primary: keep the list open and follow cursor position in the original buffer.
-  if follow_enabled and follow_group_id and picker_state and module_state.original_buf then
+  -- Sidebar-primary: keep the list open and follow cursor position in the source window.
+  if follow_enabled and follow_group_id and picker_state and source_context then
     local function sync_to_cursor()
       if not (picker_state and picker_state.active) then
         pcall(api.nvim_del_augroup_by_id, follow_group_id)
         return
       end
       if not (picker_state.win and api.nvim_win_is_valid(picker_state.win)) then
+        return
+      end
+      local latest_source = sidebar_manager.get_source_context()
+      if not latest_source or not latest_source.win or not api.nvim_win_is_valid(latest_source.win) then
+        return
+      end
+      local current_buf = api.nvim_win_get_buf(latest_source.win)
+      if module_state.original_buf ~= current_buf then
+        module_state.original_win = latest_source.win
+        module_state.original_buf = current_buf
+        module_state.original_pos = latest_source.pos
+        module_state.original_ft = latest_source.ft
+        sidebar_manager.refresh_primary(sidebar_restore)
         return
       end
       -- Do not fight the user while they are searching.
@@ -852,10 +866,16 @@ function M.show_picker(
       selecta_common.update_current_highlight(picker_state, picker_opts, idx - 1)
     end
 
-    api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+    api.nvim_create_autocmd({ "BufEnter", "CursorMoved", "CursorMovedI", "WinEnter" }, {
       group = follow_group_id,
-      buffer = module_state.original_buf,
       callback = function()
+        local latest_source = sidebar_manager.get_source_context()
+        if not latest_source or not latest_source.win or not api.nvim_win_is_valid(latest_source.win) then
+          return
+        end
+        if api.nvim_get_current_win() ~= latest_source.win then
+          return
+        end
         vim.schedule(sync_to_cursor)
       end,
     })

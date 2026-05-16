@@ -25,6 +25,21 @@ local handlers = nil
 local symbol_cache = nil
 local symbol_range_cache = {}
 
+local function should_render_empty_sidebar(config)
+  return config
+    and config.window
+    and (config.window.layout == "left" or config.window.layout == "right")
+end
+
+local function show_empty_sidebar(config, opts, notify_opts, title, prompt_info, restore_fn)
+  if not should_render_empty_sidebar(config) then
+    return false
+  end
+
+  symbol_utils.show_picker({}, state, config, ui, selecta, title, notify_opts, false, "buffer", prompt_info, restore_fn)
+  return true
+end
+
 local function initialize_state(config)
   -- Create new state
   state = symbol_utils.create_state("namu_symbols_preview")
@@ -288,11 +303,20 @@ function M.show(config, opts)
         end
       end
       -- Show a single consolidated error message if both methods failed
-      if ts_attempted then
-        local ft = vim.bo[state.original_buf].filetype or ""
-        local message =
-          string.format("No symbol provider for %s buffer (missing LSP/TreeSitter)", ft ~= "" and ft or "this")
-        vim.notify(message, vim.log.levels.WARN, notify_opts)
+    if ts_attempted then
+        if
+          not show_empty_sidebar(config, opts, notify_opts, " Symbols ", {
+            text = try_treesitter_first and " " or "󰿘 ",
+            hl_group = "NamuSourceIndicator",
+          }, function()
+            M.show(config, opts)
+          })
+        then
+          local ft = vim.bo[state.original_buf].filetype or ""
+          local message =
+            string.format("No symbol provider for %s buffer (missing LSP/TreeSitter)", ft ~= "" and ft or "this")
+          vim.notify(message, vim.log.levels.WARN, notify_opts)
+        end
       else
         vim.notify(error_message, vim.log.levels.ERROR, notify_opts)
       end
@@ -344,6 +368,14 @@ function M.show_treesitter(config, opts, silent)
   local bufnr = vim.api.nvim_get_current_buf()
   local ts_symbols = treesitter_symbols.get_symbols(bufnr)
   if not ts_symbols or #ts_symbols == 0 then
+    if show_empty_sidebar(config, opts, notify_opts, " Namu TreeSitter ", {
+      text = " ",
+      hl_group = "NamuSourceIndicator",
+    }, function()
+      M.show_treesitter(config, opts)
+    }) then
+      return true
+    end
     if not silent then
       vim.notify("No TreeSitter symbols found in current buffer", vim.log.levels.WARN, notify_opts)
     else

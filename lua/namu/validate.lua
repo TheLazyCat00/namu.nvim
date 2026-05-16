@@ -23,6 +23,9 @@ local allowed_keys = {
   preview = {
     "highlight_on_move", "highlight_mode"
   },
+  auto_start = {
+    "enabled", "mode"
+  },
   kinds = {
     "prefix_kind_colors", "enable_highlights", "highlights"
   },
@@ -39,11 +42,12 @@ local allowed_keys = {
   root = {
     "window", "display", "offset", "debug", "preserve_order", "keymaps",
     "auto_select", "row_position", "AllowKinds", "BlockList", "multiselect",
-    "title", "filter", "kindText", "kindIcons", "preview", "icon", "highlight",
-    "highlights", "kinds", "focus_current_symbol", "initially_hidden", "actions",
-    "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter",
-    "on_move", "hooks", "current_highlight", "preserve_hierarchy"
-  }
+     "title", "filter", "kindText", "kindIcons", "preview", "icon", "highlight",
+     "highlights", "kinds", "focus_current_symbol", "initially_hidden", "actions",
+     "movement", "custom_keymaps", "fuzzy", "offnet", "initial_index", "formatter",
+     "on_move", "hooks", "current_highlight", "preserve_hierarchy"
+    , "auto_start"
+   }
 ,
   -- stylua: ignore end
 }
@@ -153,6 +157,18 @@ function M.validate_picker_options(opts)
     check(
       vim.tbl_contains({ "always", "select" }, opts.preview.highlight_mode),
       "preview.highlight_mode must be either 'always' or 'select'"
+    )
+  end
+  if opts.auto_start then
+    check(type(opts.auto_start) == "table", "auto_start must be a table")
+    check_unknown_keys(opts.auto_start, allowed_keys.auto_start, "auto_start", issues)
+    check(
+      opts.auto_start.enabled == nil or type(opts.auto_start.enabled) == "boolean",
+      "auto_start.enabled must be a boolean"
+    )
+    check(
+      opts.auto_start.mode == nil or vim.tbl_contains({ "lsp", "treesitter" }, opts.auto_start.mode),
+      "auto_start.mode must be either 'lsp' or 'treesitter'"
     )
   end
   -- Validate kinds configuration

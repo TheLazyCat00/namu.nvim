@@ -145,4 +145,92 @@ T["SymbolUtils.picker"]["handles empty items list"] = function()
   vim.notify = _original_notify
 end
 
+T["SymbolUtils.picker"]["keeps persistent sidebar empty without notifying"] = function()
+  local notified = false
+  local picked_items = nil
+  local picked_opts = nil
+  local _original_notify = vim.notify
+  local _original_get_current_win = vim.api.nvim_get_current_win
+  local _original_get_current_buf = vim.api.nvim_get_current_buf
+  local _original_win_is_valid = vim.api.nvim_win_is_valid
+  local _original_buf_is_valid = vim.api.nvim_buf_is_valid
+  local _original_win_get_buf = vim.api.nvim_win_get_buf
+  local _original_win_get_cursor = vim.api.nvim_win_get_cursor
+  local _original_bo = vim.bo
+
+  vim.notify = function()
+    notified = true
+  end
+  vim.api.nvim_get_current_win = function()
+    return 7
+  end
+  vim.api.nvim_get_current_buf = function()
+    return 3
+  end
+  vim.api.nvim_win_is_valid = function(win)
+    return win == 7
+  end
+  vim.api.nvim_buf_is_valid = function(buf)
+    return buf == 3
+  end
+  vim.api.nvim_win_get_buf = function(win)
+    return 3
+  end
+  vim.api.nvim_win_get_cursor = function(win)
+    return { 1, 0 }
+  end
+  vim.bo = setmetatable({
+    [3] = { filetype = "lua" },
+  }, {
+    __index = function()
+      return { filetype = "lua" }
+    end,
+  })
+
+  local fake_selecta = {
+    pick = function(items, opts)
+      picked_items = items
+      picked_opts = opts
+      return {
+        picker_id = "sidebar-test",
+        active = true,
+        win = 11,
+        prompt_buf = nil,
+        get_query_string = function()
+          return ""
+        end,
+      }
+    end,
+    close_picker = function() end,
+  }
+
+  symbol_utils.show_picker(
+    {},
+    { namespace = "namu_symbols_preview", original_win = 7, original_buf = 3, original_pos = { 1, 0 } },
+    { window = { layout = "right" }, movement = {}, display = {}, current_highlight = {}, custom_keymaps = {}, multiselect = { enabled = false }, preview = { highlight_on_move = false, highlight_mode = "always" } },
+    { clear_preview_highlight = function() end, find_symbol_index = function() return nil end, apply_highlights = function() end },
+    fake_selecta,
+    " Symbols ",
+    { title = "Namu" },
+    false,
+    "buffer",
+    nil,
+    function() end
+  )
+
+  h.eq(notified, false)
+  h.eq(type(picked_items), "table")
+  h.eq(#picked_items, 0)
+  h.eq(picked_opts.stay_open, true)
+
+  vim.notify = _original_notify
+  vim.api.nvim_get_current_win = _original_get_current_win
+  vim.api.nvim_get_current_buf = _original_get_current_buf
+  vim.api.nvim_win_is_valid = _original_win_is_valid
+  vim.api.nvim_buf_is_valid = _original_buf_is_valid
+  vim.api.nvim_win_get_buf = _original_win_get_buf
+  vim.api.nvim_win_get_cursor = _original_win_get_cursor
+  vim.bo = _original_bo
+end
+
 return T
