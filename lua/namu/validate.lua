@@ -3,7 +3,7 @@ local M = {}
 local allowed_keys = {
   -- stylua: ignore start 
   window = {
-    "relative", "border", "style", "title_prefix", "width_ratio", "height_ratio",
+    "relative", "layout", "border", "style", "title_prefix", "width", "width_ratio", "height_ratio",
     "auto_size", "min_width", "max_width", "padding", "max_height", "min_height",
     "auto_resize", "title_pos", "show_footer", "footer_pos", "override"
   },
@@ -114,6 +114,11 @@ function M.validate_picker_options(opts)
   if opts.window then
     check(type(opts.window) == "table", "window must be a table", "error")
     check_unknown_keys(opts.window, allowed_keys.window, "window", issues)
+    check(
+      not opts.window.layout or vim.tbl_contains({ "float", "left", "right" }, opts.window.layout),
+      "window.layout must be one of 'float', 'left', or 'right'"
+    )
+    check(not opts.window.width or (type(opts.window.width) == "number" and opts.window.width > 0), "window.width must be a positive number")
   end
   -- Validate display options
   if opts.display then

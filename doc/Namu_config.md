@@ -81,8 +81,20 @@ row_position = "top10", -- Options:
 -- "bottom": Aligned to bottom
 ```
 
+## Window Layout
+Use a floating picker by default, or pin it to the editor edges like a sidebar.
+
+```lua
+window = {
+  layout = "float", -- "float" | "left" | "right"
+  width = nil, -- <1 = ratio of editor width, >=1 = absolute columns
+}
+```
+
+When `layout` is `"left"` or `"right"`, Namu uses the configured width and stretches vertically like a sidebar.
+
 ## Right Position
-Only applies when `row_position` is right-aligned.
+Only applies when `row_position` is right-aligned in floating layout.
 
 ```lua
 right_position = {

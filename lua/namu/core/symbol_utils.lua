@@ -4,6 +4,7 @@ local format_utils = require("namu.core.format_utils")
 local core = require("namu.core.utils")
 local selecta_common = require("namu.selecta.common")
 local api = vim.api
+local uv = vim.uv or vim.loop
 
 -- Factory function to create a state object for a particular module
 function M.create_state(namespace)
@@ -701,7 +702,7 @@ function M.show_picker(
   --
   local follow_group_id = nil
   if opts.stay_open then
-    follow_group_id = api.nvim_create_augroup("NamuStayOpen_" .. tostring(vim.uv.hrtime()), { clear = true })
+    follow_group_id = api.nvim_create_augroup("NamuStayOpen_" .. tostring(uv.hrtime()), { clear = true })
     local original_on_close = picker_opts.on_close
     picker_opts.on_close = function()
       if follow_group_id then

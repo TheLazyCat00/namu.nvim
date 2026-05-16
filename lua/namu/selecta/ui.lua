@@ -11,6 +11,7 @@ local current_selection_ns = common.current_selection_ns
 local selection_ns = common.selection_ns
 local filter_info_ns = common.filter_info_ns
 local prompt_info_ns = common.prompt_info_ns
+local supports_window_footer = vim.fn.has("nvim-0.10") == 1
 
 ---Clamp start and end columns to be within the line length bounds.
 ---@param start_col integer
@@ -86,9 +87,99 @@ function M.clear_original_dimensions(picker_id)
   end
 end
 
+---@param opts SelectaOptions
+---@return "float"|"left"|"right"
+local function get_window_layout(opts)
+  local layout = opts.window.layout or config.window.layout or "float"
+  if layout == "left" or layout == "right" then
+    return layout
+  end
+  return "float"
+end
+
+---@param layout string
+---@return boolean
+local function is_sidebar_layout(layout)
+  return layout == "left" or layout == "right"
+end
+
+---@param container { width: number }
+---@param opts SelectaOptions
+---@param max_width number
+---@param padding number
+---@param position_info PositionInfo
+---@return number
+local function get_max_available_width(container, opts, max_width, padding, position_info)
+  local max_available_width = math.min(max_width, container.width - (2 * padding) - 1)
+  if
+    get_window_layout(opts) == "float"
+    and position_info.type:find("_right$")
+    and config.right_position
+    and config.right_position.fixed
+  then
+    local initial_col = math.floor(container.width * config.right_position.ratio)
+    max_available_width = math.min(max_available_width, container.width - initial_col - (padding * 2) - 1)
+  end
+  return math.max(1, max_available_width)
+end
+
+---@param value any
+---@param container_width number
+---@return number|nil
+local function resolve_window_width(value, container_width)
+  if type(value) ~= "number" or value <= 0 then
+    return nil
+  end
+  if value < 1 then
+    return math.floor(container_width * value)
+  end
+  return math.floor(value)
+end
+
+---@param items SelectaItem[]
+---@param opts SelectaOptions
+---@param formatter fun(item: SelectaItem): string
+---@param container_width number
+---@param min_width number
+---@param max_available_width number
+---@param padding number
+---@param layout string
+---@return number
+local function get_content_width(items, opts, formatter, container_width, min_width, max_available_width, padding, layout)
+  local configured_width = resolve_window_width(opts.window.width, container_width)
+  if configured_width then
+    return math.min(math.max(configured_width, min_width), max_available_width)
+  end
+
+  if is_sidebar_layout(layout) then
+    local ratio_width = math.floor(container_width * (opts.window.width_ratio or config.window.width_ratio))
+    return math.min(math.max(ratio_width, min_width), max_available_width)
+  end
+
+  local content_width = min_width
+  if opts.window.auto_size then
+    for _, item in ipairs(items) do
+      local line = formatter(item)
+      local width = vim.api.nvim_strwidth(line)
+      if width > content_width then
+        content_width = width
+      end
+    end
+    content_width = content_width + padding + 1
+    return math.min(math.max(content_width, min_width), max_available_width)
+  end
+
+  local ratio_width = math.floor(container_width * (opts.window.width_ratio or config.window.width_ratio))
+  return math.min(math.max(ratio_width, min_width), max_available_width)
+end
+
 function M.calculate_max_available_height(position_info, opts, picker_id)
   -- Get container dimensions using our existing caching system
   local container = M.get_original_dimensions(picker_id) or M.get_container_dimensions(opts, picker_id)
+
+  if is_sidebar_layout(get_window_layout(opts)) then
+    return math.max(1, container.height - 3)
+  end
 
   -- Calculate height based on container dimensions and position
   if position_info.type:match("^top") then
@@ -293,7 +384,7 @@ end
 ---@param win number
 ---@param opts SelectaOptions
 function M.update_footer(state, win, opts)
-  if not vim.api.nvim_win_is_valid(win) or not opts.window.show_footer then
+  if not supports_window_footer or not vim.api.nvim_win_is_valid(win) or not opts.window.show_footer then
     return
   end
 
@@ -331,49 +422,15 @@ function M.calculate_window_size(items, opts, formatter, state_col, picker_id)
   local padding = opts.window.padding or config.window.padding
   -- Get container dimensions based on relative setting
   local container = picker_id and M.get_original_dimensions(picker_id) or M.get_container_dimensions(opts, picker_id)
-  -- Calculate content width
-  local content_width = min_width
+  local layout = get_window_layout(opts)
   -- Calculate position and initial column
   local row_position = opts.row_position or config.row_position or "top10"
   local position_info = common.parse_position(row_position)
-  local initial_col = state_col
-  local absolute_max_width = container.width - (2 * padding)
-  max_width = math.min(max_width, absolute_max_width)
-  if not initial_col then
-    if position_info.type:find("_right$") then
-      if config.right_position.fixed then
-        initial_col = math.floor(container.width * config.right_position.ratio)
-        -- Constrain max_width based on available space
-        max_width = math.min(max_width, container.width - initial_col - (padding * 2) - 1)
-      else
-        -- Constrain max_width based on available space
-        max_width = math.min(max_width, container.width - (padding * 2) - 1)
-        initial_col = math.floor((container.width - max_width) / 2) -- Default to center if not fixed
-      end
-    else
-      -- Constrain max_width based on available space
-      max_width = math.min(max_width, container.width - (padding * 2) - 1)
-      initial_col = math.floor((container.width - max_width) / 2) -- Center position
-    end
+  if is_sidebar_layout(layout) then
+    position_info = { type = "top", ratio = 0 }
   end
-
-  -- Calculate available width based on constrained max_width
-  local max_available_width = max_width
-  if opts.window.auto_size then
-    for _, item in ipairs(items) do
-      local line = formatter(item)
-      local width = vim.api.nvim_strwidth(line)
-      if width > content_width then
-        content_width = width
-      end
-    end
-    content_width = content_width + padding + 1 -- this extra is for when selecting and current item indicator
-    content_width = math.min(math.max(content_width, min_width), max_width, max_available_width)
-  else
-    -- Use ratio-based width
-    content_width = math.floor(container.width * (opts.window.width_ratio or config.window.width_ratio))
-    content_width = math.min(content_width, max_available_width) -- Constrain ratio-based width as well
-  end
+  local max_available_width = get_max_available_width(container, opts, max_width, padding, position_info)
+  local content_width = get_content_width(items, opts, formatter, container.width, min_width, max_available_width, padding, layout)
   -- Calculate height based on number of items
   local max_available_height = M.calculate_max_available_height(position_info, opts, picker_id)
   local content_height = #items
@@ -943,6 +1000,13 @@ function M.get_window_position(width, row_position, opts, picker_id)
   local container = picker_id and M.get_original_dimensions(picker_id) or M.get_container_dimensions(opts, picker_id)
   local available_width = container.width
   local available_height = container.height
+  local layout = get_window_layout(opts)
+
+  if layout == "left" then
+    return 0, 0
+  elseif layout == "right" then
+    return 0, math.max(0, available_width - width - 2)
+  end
 
   -- Parse the position
   local pos_info = common.parse_position(row_position)
@@ -1011,7 +1075,7 @@ function M.create_windows(state, opts)
   win_config = vim.tbl_deep_extend("force", win_config, opts.window.override or {})
 
   -- Set footer if needed
-  if opts.window.show_footer then
+  if supports_window_footer and opts.window.show_footer then
     -- Allow modules to provide custom counting logic for multiline items
     local filtered_count = #state.filtered_items
     local total_count = #state.items

@@ -63,9 +63,11 @@
 
 ---@class SelectaWindowConfig
 ---@field relative? string
+---@field layout? "float"|"left"|"right"
 ---@field border? string|table
 ---@field style? string
 ---@field title_prefix? string
+---@field width? number
 ---@field width_ratio? number
 ---@field height_ratio? number
 ---@field auto_size? boolean
@@ -103,7 +105,7 @@
 ---@field preserve_order? boolean
 ---@field keymaps? SelectaKeymap[]
 ---@field auto_select? boolean
----@field row_position? "center"|"top10"|"top10_right"|"center_right"|"bottom" -- Added more options
+---@field row_position? "center"|"top10"|"top10_right"|"center_right"|"bottom"
 ---@field multiselect? SelectaMultiselect
 ---@field display? SelectaDisplay
 ---@field offset? fun(item: SelectaItem): number|number

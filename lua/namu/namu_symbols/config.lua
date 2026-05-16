@@ -182,6 +182,7 @@ M.defaults = {
     max_width = 120,
     max_height = 41,
     padding = 2,
+    layout = "float",
     -- this is borrored from @mini.nvim, thanks :), it's for >= 0.11
     border = (vim.fn.exists("+winborder") == 1 and vim.o.winborder ~= "") and vim.o.winborder or "rounded",
     title_pos = "center",
@@ -189,6 +190,7 @@ M.defaults = {
     footer_pos = "right",
     relative = "editor",
     style = "minimal",
+    width = nil,
     width_ratio = 0.6,
     height_ratio = 0.6,
     title_prefix = "󱠦 ",

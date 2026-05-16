@@ -1,0 +1,63 @@
+<svg width="1400" height="760" viewBox="0 0 1400 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="760" fill="#0B1020"/>
+  <text x="48" y="56" fill="#DBE4FF" font-size="30" font-family="Arial, sans-serif" font-weight="700">Namu sidebar layouts</text>
+  <text x="48" y="88" fill="#9FB0D9" font-size="16" font-family="Arial, sans-serif">Preview of window.layout = "left" | "right" with window.width as ratio/absolute width.</text>
+
+  <rect x="48" y="128" width="620" height="560" rx="18" fill="#11182D" stroke="#2A3557"/>
+  <text x="72" y="164" fill="#B8C6EA" font-size="16" font-family="Arial, sans-serif">layout = "left", width = 32</text>
+  <rect x="48" y="180" width="620" height="508" rx="0" fill="#0F1528"/>
+  <rect x="48" y="180" width="176" height="508" fill="#121A31"/>
+  <rect x="224" y="180" width="444" height="508" fill="#0F1528"/>
+  <line x1="224" y1="180" x2="224" y2="688" stroke="#2A3557"/>
+  <rect x="48" y="180" width="176" height="48" fill="#16203D"/>
+  <line x1="48" y1="228" x2="224" y2="228" stroke="#2A3557"/>
+  <text x="68" y="210" fill="#7AA2FF" font-size="18" font-family="Arial, sans-serif">󱠦</text>
+  <text x="96" y="210" fill="#E9EFFF" font-size="18" font-family="Arial, sans-serif">Symbols</text>
+  <rect x="60" y="246" width="152" height="34" rx="8" fill="#121A31"/>
+  <text x="74" y="268" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  M.setup</text>
+  <rect x="60" y="286" width="152" height="34" rx="8" fill="#26355D"/>
+  <text x="74" y="308" fill="#FFFFFF" font-size="16" font-family="Arial, sans-serif">  M.calculate_window_size</text>
+  <rect x="60" y="326" width="152" height="34" rx="8" fill="#121A31"/>
+  <text x="74" y="348" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  M.get_window_position</text>
+  <rect x="60" y="366" width="152" height="34" rx="8" fill="#121A31"/>
+  <text x="74" y="388" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  M.update_footer</text>
+  <line x1="48" y1="652" x2="224" y2="652" stroke="#2A3557"/>
+  <text x="74" y="675" fill="#8DA0CB" font-size="14" font-family="Arial, sans-serif">4/18</text>
+  <text x="252" y="238" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">local function <tspan fill="#7EE787">get_window_position</tspan>(width, row_position, opts)</text>
+  <text x="252" y="270" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">  if opts.window.layout == <tspan fill="#7EE787">"left"</tspan> then</text>
+  <text x="252" y="302" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">    return 0, 0</text>
+  <text x="252" y="334" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">  end</text>
+  <text x="252" y="398" fill="#7588B5" font-size="18" font-family="Courier New, monospace">  -- floating layout behavior stays unchanged</text>
+
+  <rect x="732" y="128" width="620" height="560" rx="18" fill="#11182D" stroke="#2A3557"/>
+  <text x="756" y="164" fill="#B8C6EA" font-size="16" font-family="Arial, sans-serif">layout = "right", width = 0.25</text>
+  <rect x="732" y="180" width="620" height="508" rx="0" fill="#0F1528"/>
+  <rect x="1176" y="180" width="176" height="508" fill="#121A31"/>
+  <rect x="732" y="180" width="444" height="508" fill="#0F1528"/>
+  <line x1="1176" y1="180" x2="1176" y2="688" stroke="#2A3557"/>
+  <rect x="1176" y="180" width="176" height="48" fill="#16203D"/>
+  <line x1="1176" y1="228" x2="1352" y2="228" stroke="#2A3557"/>
+  <text x="1196" y="210" fill="#7AA2FF" font-size="18" font-family="Arial, sans-serif">󱠦</text>
+  <text x="1224" y="210" fill="#E9EFFF" font-size="18" font-family="Arial, sans-serif">/win</text>
+  <rect x="1188" y="246" width="152" height="34" rx="8" fill="#121A31" stroke="#4E6DC4"/>
+  <text x="1202" y="268" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  window.layout</text>
+  <rect x="1188" y="286" width="152" height="34" rx="8" fill="#26355D" stroke="#4E6DC4"/>
+  <text x="1202" y="308" fill="#FFFFFF" font-size="16" font-family="Arial, sans-serif">  window.width</text>
+  <rect x="1188" y="326" width="152" height="34" rx="8" fill="#121A31" stroke="#4E6DC4"/>
+  <text x="1202" y="348" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  width_ratio</text>
+  <rect x="1188" y="366" width="152" height="34" rx="8" fill="#121A31"/>
+  <text x="1202" y="388" fill="#C8D5F6" font-size="16" font-family="Arial, sans-serif">○  stay_open</text>
+  <line x1="1176" y1="652" x2="1352" y2="652" stroke="#2A3557"/>
+  <text x="1202" y="675" fill="#8DA0CB" font-size="14" font-family="Arial, sans-serif">4/18</text>
+  <text x="756" y="238" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">require("namu").setup({</text>
+  <text x="756" y="270" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">  namu_symbols = {</text>
+  <text x="756" y="302" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">    options = {</text>
+  <text x="756" y="334" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">      stay_open = true,</text>
+  <text x="756" y="366" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">      window = {</text>
+  <text x="756" y="398" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">        layout = <tspan fill="#7EE787">"right"</tspan>,</text>
+  <text x="756" y="430" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">        width = <tspan fill="#7EE787">0.25</tspan>,</text>
+  <text x="756" y="462" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">      },</text>
+  <text x="756" y="494" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">    },</text>
+  <text x="756" y="526" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">  },</text>
+  <text x="756" y="558" fill="#9FB0D9" font-size="18" font-family="Courier New, monospace">})</text>
+</svg>

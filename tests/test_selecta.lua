@@ -195,6 +195,7 @@ T["Selecta.config"]["applies default configuration"] = function()
 
   local config = selecta.get_config()
   h.eq(config.window.relative, "editor")
+  h.eq(config.window.layout, "float")
   h.eq(config.window.border, "none")
   h.eq(config.window.width_ratio, 0.6)
   h.eq(config.window.height_ratio, 0.6)
@@ -208,6 +209,8 @@ end
 T["Selecta.config"]["merges user configuration"] = function()
   selecta.setup({
     window = {
+      layout = "right",
+      width = 0.25,
       border = "rounded",
       width_ratio = 0.8,
     },
@@ -218,6 +221,8 @@ T["Selecta.config"]["merges user configuration"] = function()
   })
 
   local config = selecta.get_config()
+  h.eq(config.window.layout, "right")
+  h.eq(config.window.width, 0.25)
   h.eq(config.window.border, "rounded")
   h.eq(config.window.width_ratio, 0.8)
   h.eq(config.window.relative, "editor") -- Default preserved
@@ -287,6 +292,41 @@ T["Selecta.window_sizing"]["calculates correct dimensions"] = function()
   h.eq(width >= 20, true)
   h.eq(width <= 120, true)
   h.eq(height, 2)
+end
+
+T["Selecta.window_sizing"]["uses configured sidebar width values"] = function()
+  local items = {
+    { text = "short" },
+    { text = "this is a much longer item that should not change a fixed sidebar width" },
+  }
+
+  local ratio_width = selecta._test.calculate_window_size(items, {
+    window = {
+      layout = "right",
+      width = 0.25,
+      auto_size = true,
+      min_width = 20,
+      max_width = 120,
+      padding = 2,
+    },
+  }, function(item)
+    return item.text
+  end)
+  h.eq(ratio_width, math.floor(vim.o.columns * 0.25))
+
+  local absolute_width = selecta._test.calculate_window_size(items, {
+    window = {
+      layout = "left",
+      width = 42,
+      auto_size = true,
+      min_width = 20,
+      max_width = 120,
+      padding = 2,
+    },
+  }, function(item)
+    return item.text
+  end)
+  h.eq(absolute_width, 42)
 end
 
 -- Input TEST ---------------------------------------------------
@@ -483,6 +523,35 @@ T["Window.positioning"]["handles fixed right position correctly"] = function()
   -- Restore mocks
   vim.o = _original_o
   selecta_config.values = _original_values
+end
+
+T["Window.positioning"]["positions sidebar layouts against editor edges"] = function()
+  local get_window_position = selecta._test.get_window_position
+
+  local _original_o = vim.o
+  vim.o = {
+    lines = 100,
+    columns = 200,
+    cmdheight = 1,
+  }
+
+  local row, col = get_window_position(40, "top20", {
+    window = {
+      layout = "left",
+    },
+  })
+  h.eq(row, 0)
+  h.eq(col, 0)
+
+  row, col = get_window_position(40, "center", {
+    window = {
+      layout = "right",
+    },
+  })
+  h.eq(row, 0)
+  h.eq(col, 158)
+
+  vim.o = _original_o
 end
 
 -- Buffer Options TEST ---------------------------------------------------

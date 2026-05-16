@@ -290,6 +290,7 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
             highlight_mode = "always", -- "always" | "select" (only highlight when selecting)
           },
           window = {
+            layout = "float", -- "float" | "left" | "right"
             auto_size = true,
             min_height = 1,
             min_width = 20,
@@ -302,6 +303,7 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
             footer_pos = "right",
             relative = "editor",
             style = "minimal",
+            width = nil, -- <1 = ratio of editor width, >=1 = absolute columns
             width_ratio = 0.6,
             height_ratio = 0.6,
             title_prefix = "󱠦 ",
@@ -430,6 +432,22 @@ You can check the [configuration documentation](https://github.com/bassamsdata/n
     }
   end,
 }
+```
+
+For an `aerial.nvim`-style sidebar:
+
+```lua
+require("namu").setup({
+  namu_symbols = {
+    options = {
+      stay_open = true,
+      window = {
+        layout = "right",
+        width = 0.25, -- ratio when < 1, absolute columns when >= 1
+      },
+    },
+  },
+})
 ```
 
 </details>

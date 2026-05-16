@@ -47,6 +47,15 @@ row_position = "top10", -- Options: (those are perentages from the top of editor
 -- "bottom"          -- Bottom of the screen
 ```
 
+```lua
+window = {
+  layout = "float", -- "float" | "left" | "right"
+  width = nil, -- <1 = ratio of editor width, >=1 = absolute columns
+}
+```
+
+Set `layout = "left"` or `"right"` to make Namu behave like a sidebar attached to the editor edge.
+
 
 ---
 

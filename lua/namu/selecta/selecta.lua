@@ -46,6 +46,7 @@ local common = require("namu.selecta.common")
 local input_handler = require("namu.selecta.input")
 local ui = require("namu.selecta.ui")
 local config = require("namu.selecta.selecta_config").values
+local uv = vim.uv or vim.loop
 local notify_opts = { title = "Namu", icon = config.icon }
 
 function M.log(message)
@@ -302,7 +303,7 @@ local loading_ns_id = common.loading_ns_id
 ---@return boolean started
 function M.start_async_fetch(state, query, opts, callback)
   -- Generate a unique request ID for this specific request
-  local request_id = tostring(vim.uv.now()) .. "_" .. vim.fn.rand()
+  local request_id = tostring(uv.now()) .. "_" .. vim.fn.rand()
   state.current_request_id = request_id
   state.last_query = query
   state.is_loading = true
@@ -549,7 +550,7 @@ function M.pick(items, opts)
 
   -- Create state
   local state = StateManager.new(items, opts)
-  state.picker_id = tostring(vim.uv.hrtime())
+  state.picker_id = tostring(uv.hrtime())
 
   local _ = ui.get_container_dimensions(opts, state.picker_id)
   -- Calculate dimensions and position for the state
