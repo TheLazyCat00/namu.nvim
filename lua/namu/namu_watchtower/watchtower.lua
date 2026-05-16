@@ -228,7 +228,13 @@ local function process_buffer(bufnr, config)
   -- Check if we have an LSP client with the documentSymbol method
   local lsp_client = lsp.get_client_with_method(bufnr, method)
   local has_lsp = lsp_client ~= nil
-  if has_lsp then
+  if config.prefer_treesitter then
+    logger.log("Watchtower: Prefer treesitter in buffer " .. bufnr)
+    process_with_treesitter(bufnr, config, promise)
+  elseif not has_lsp then
+    logger.log("Watchtower: No LSP for buffer " .. bufnr .. ", trying TreeSitter")
+    process_with_treesitter(bufnr, config, promise)
+  else
     -- Use LSP if available
     Async:lsp_request(bufnr, method, params):and_then(function(lsp_symbols)
       if lsp_symbols and #lsp_symbols > 0 then
@@ -241,10 +247,6 @@ local function process_buffer(bufnr, config)
       -- LSP error, try TreeSitter
       process_with_treesitter(bufnr, config, promise)
     end)
-  else
-    -- No LSP, directly use TreeSitter
-    logger.log("Watchtower: No LSP for buffer " .. bufnr .. ", trying TreeSitter")
-    process_with_treesitter(bufnr, config, promise)
   end
 
   return promise

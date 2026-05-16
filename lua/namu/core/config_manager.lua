@@ -103,6 +103,7 @@ M.module_defaults = {
     enhance_lua_test_symbols = true,
     lua_test_truncate_length = 50,
     lua_test_preserve_hierarchy = true,
+    prefer_treesitter = false,
   },
   namu_ctags = {
     -- ctags uses global defaults
