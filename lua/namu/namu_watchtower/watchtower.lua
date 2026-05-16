@@ -20,6 +20,7 @@ local core_utils = require("namu.core.utils")
 local utils = require("namu.namu_symbols.utils")
 local logger = require("namu.utils.logger")
 local api = vim.api
+local sidebar_manager = require("namu.core.sidebar_manager")
 
 local M = {}
 
@@ -360,10 +361,20 @@ function M.show(config)
           local suffix = buffer_count == 1 and "buffer" or "buffers"
           prompt_info = { text = "(" .. buffer_count .. " " .. suffix .. ")", hl_group = "Comment" }
         end
+        local picker_config = config
+        local primary = sidebar_manager.get_primary()
+        if primary and (primary.layout == "left" or primary.layout == "right") then
+          picker_config = vim.tbl_deep_extend("force", {}, config, {
+            window = {
+              layout = primary.layout,
+              width = (config.window and config.window.width) or primary.width,
+            },
+          })
+        end
         symbol_utils.show_picker(
           all_items,
           state,
-          config,
+          picker_config,
           ui,
           selecta,
           " Watchtower ",

@@ -106,6 +106,10 @@ M.module_defaults = {
     lua_test_truncate_length = 50,
     lua_test_preserve_hierarchy = true,
     prefer_treesitter = false,
+    -- Watchtower can get noisy across many buffers; keep defaults focused.
+    AllowKinds = {
+      default = { "Function", "Method", "Class", "Module" },
+    },
   },
   namu_ctags = {
     -- ctags uses global defaults

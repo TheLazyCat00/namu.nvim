@@ -781,6 +781,8 @@ function M.show_picker(
       restore = sidebar_restore,
       close = selecta.close_picker,
       picker_state = picker_state,
+      layout = layout,
+      width = opts.window and opts.window.width or nil,
     })
   end
 

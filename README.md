@@ -504,6 +504,7 @@ https://github.com/user-attachments/assets/e548c3ea-6cdb-4f20-9569-175c57b31039
 <summary>watchtower</summary>
 
 - Shows symbols from all open buffers (LSP or Treesitter fallback).
+- Default kinds: Function/Method/Class/Module (override via `watchtower.options.AllowKinds`).
 - Filter by buffer: `/bf:buffer_name`
 - Combine with kind: `/bf:name:fn`
 
